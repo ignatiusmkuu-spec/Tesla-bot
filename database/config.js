@@ -4,7 +4,7 @@ const defaultSettings = {
   antilink: 'on',
   antilinkall: 'off',
   autobio: 'off',
-  antidelete: 'off',
+  antidelete: 'on',
   antitag: 'on',
   antibot: 'off',
   anticall: 'off',
