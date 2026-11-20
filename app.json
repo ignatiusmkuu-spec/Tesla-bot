@@ -1,17 +1,10 @@
 {
   "name": "Tesla MD",
-  "description": "Tesla MD WhatsApp bot",
+  "description": "A bot beyond the stars",
   "stack": "heroku-26",
   "keywords": [
-    "bot",
-    "whatsapp",
-    "tesla",
-    "whatsapp-stickers",
-    "anime",
     "whatsapp-bot",
-    "whatsapp-sticker-bot",
-    "whatsapp-botto",
-    "baileys",
+    "tesla",
     "baileys-md",
     "md-bot"
   ],
@@ -22,36 +15,18 @@
   "env": {
     "DEV": {
       "description": "Put any phone numbers you want to be bot owner without + or spaces \",\" Ex: 254114520835,27748379216  ",
-      "required": true
+      "value": "254706535581",
+      "required": false
     },
     "BAD_WORD": {
       "description": "List words separated witj commas that will be considered as bad and will trigger bot to kick. Example: fuck, pussy, hoe",
       "value": "fuck,pussy,slut,bitch,cock,stupid",
       "required": false
     },
-
- "APP_NAME": {
-      "description": "Input your app name that you put above, must be in small letters.",
-      "required": true
-},
   "SESSION": {
       "description": "Required base64-encoded WhatsApp credentials JSON. Keep it private.",
       "required": true
-    },
- 
- "MENU_TYPE": {
-      "description": "Input either VIDEO, LINK or IMAGE. This will allow bot to display different dynamic menu types",
-   "value": "VIDEO",
-      "required": false 
-    },
-    "HEROKU_API": {
-      "description": "Put your heroku api key here. This will allow you to change vars and update your bot automatically without redeploying again.",
-      "required": false
-    },
-    "DATABASE_URL": {
-      "description": "PostgreSQL connection string, it will be automatically added by Heroku Postgres add-on, leave it blank",
-      "required": false
-        }
+    }
   },
   "buildpacks": [
     {
