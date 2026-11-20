@@ -64,7 +64,7 @@ test('keeps play audio and non-media messages unchanged', async () => {
   ]);
 });
 
-test('combines the full video status with the downloaded media caption', async () => {
+test('sends the video status as text before the downloaded video', async () => {
   const calls = [];
   const client = {
     sendMessage(...args) {
@@ -80,15 +80,14 @@ test('combines the full video status with the downloaded media caption', async (
 
   await createDownloadClient(client, 'video').sendMessage('chat-id', videoMessage);
 
-  assert.equal(calls.length, 1);
-  assert.equal(
-    calls[0][1].caption,
-    `${VIDEO_DOWNLOAD_CAPTION}\n\nDOWNLOADED BY TESLA-MD`
-  );
-  assert.ok(calls[0][1].caption.length <= 1024);
+  assert.equal(calls.length, 2);
+  assert.deepEqual(calls[0][1], { text: VIDEO_DOWNLOAD_CAPTION });
+  assert.equal(calls[1][1].video, videoMessage.video);
+  assert.equal(calls[1][1].caption, 'DOWNLOADED BY TESLA-MD');
+  assert.ok(calls[0][1].text.length <= 1024);
 });
 
-test('combines video status with downloaded document media too', async () => {
+test('sends the video status before downloaded video documents too', async () => {
   const calls = [];
   const client = {
     sendMessage(...args) {
@@ -104,6 +103,7 @@ test('combines video status with downloaded document media too', async () => {
 
   await createDownloadClient(client, 'video').sendMessage('chat-id', documentMessage);
 
-  assert.equal(calls[0][1].caption, VIDEO_DOWNLOAD_CAPTION);
+  assert.deepEqual(calls[0][1], { text: VIDEO_DOWNLOAD_CAPTION });
+  assert.equal(calls[1][1].document, documentMessage.document);
   assert.ok(VIDEO_DOWNLOAD_CAPTION.length <= 1024);
 });
