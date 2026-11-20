@@ -8,6 +8,7 @@ const chalk = require("chalk");
 const speed = require("performance-now");
 const { DateTime } = require('luxon');
 const fetchSettings = require('./database/fetchSettings');
+const { updateSetting } = require('./database/config');
 const groupCache = require('./lib/Groupcache');
 const identity = require('./lib/Identity');
 const sudoLib = require('./lib/sudo');
@@ -329,6 +330,60 @@ if (antilinkall === 'on' && body.includes('https://') && !Owner && isBotAdmin &&
     }
 
     if (cmd && process.env.DEBUG_IDS === 'true') console.log('IDS', JSON.stringify({ fromMe: m.fromMe, sender: m.sender, key: mek.key, me: [...myIds], senderIds: [...senderAllIds], owner: Owner, itsMe, isAdmin }));
+    if (cmd && command === 'antidelete') {
+      if (!MainOwner) {
+        await reply('Only the bot owner can change anti-delete settings.');
+        return;
+      }
+
+      const requestedMode = String(args[0] || '').toLowerCase();
+      const currentMode = antideleteLib.normalizeMode(antidelete);
+      if (!requestedMode || ['status', 'help'].includes(requestedMode)) {
+        await reply([
+          '╭━━━〔 🛡️ 𝗔𝗡𝗧𝗜-𝗗𝗘𝗟𝗘𝗧𝗘 〕━━━╮',
+          `┃ Current mode: ${currentMode.toUpperCase()}`,
+          '┣━━━━━━━━━━━━━━━━━━━━━━━━━━',
+          '┃ DM     — send reports to owner DM',
+          '┃ CHAT   — private chats, report there',
+          '┃ GROUP  — groups, report in group',
+          '┃ BOTH   — source chat and owner DM',
+          '┃ OFF    — do not save messages',
+          '┣━━━━━━━━━━━━━━━━━━━━━━━━━━',
+          '┃ Saved copies are kept locally for',
+          `┃ up to ${Number(process.env.ANTIDELETE_KEEP_HOURS) || 48} hours.`,
+          '╰━━━━━━━━━━━━━━━━━━━━━━━━━━╯',
+          `Use ${prefix}antidelete dm|chat|group|both|off`,
+        ].join('\n'));
+        return;
+      }
+
+      if (!['off', 'dm', 'group', 'chat', 'both'].includes(requestedMode)) {
+        await reply(`Choose a mode: ${prefix}antidelete dm, chat, group, both, or off.`);
+        return;
+      }
+
+      const saved = await updateSetting('antidelete', requestedMode);
+      if (!saved) {
+        await reply('Anti-delete settings could not be saved. Please try again.');
+        return;
+      }
+      const modeDescriptions = {
+        off: 'New messages will not be archived.',
+        dm: 'Reports from DMs and groups go to the bot owner’s DM.',
+        chat: 'Private messages only; reports return to that chat.',
+        group: 'Group messages only; reports return to that group.',
+        both: 'Reports go to the source chat and bot owner’s DM.',
+      };
+      await reply([
+        '╭━━━〔 🛡️ 𝗔𝗡𝗧𝗜-𝗗𝗘𝗟𝗘𝗧𝗘 〕━━━╮',
+        `┃ Mode updated: ${requestedMode.toUpperCase()}`,
+        `┃ ${modeDescriptions[requestedMode]}`,
+        requestedMode === 'off'
+          ? '╰━━━━━━━━━━━━━━━━━━━━━━━━━━╯'
+          : `┃ Copies are kept locally for up to ${Number(process.env.ANTIDELETE_KEEP_HOURS) || 48} hours.\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━╯`,
+      ].join('\n'));
+      return;
+    }
     if (cmd) {
       const handled = await handler.dispatch(command, client, m, {
           DevDreaded, Heroku, NotOwner, Owner, MainOwner, isSudo, admin, appname,
