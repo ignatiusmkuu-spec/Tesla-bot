@@ -19,6 +19,28 @@ const { execFile } = require("child_process");
 const handler = require('./lib/handler');
 handler.loadPlugins();
 
+const VIDEO_DOWNLOAD_STATUS = [
+  '╭━━━〔 ⚡ TESLA MD 〕━━━╮',
+  '',
+  '⏳ Initializing video downloader...',
+  '🔌 Connecting to Tesla servers...',
+  '📡 Establishing secure connection...',
+  '🔍 Analyzing video source...',
+  '⚙️ Activating download engine...',
+  '📥 Preparing high-speed download...',
+  '',
+  '╭━━〔 SYSTEM STATUS 〕━━╮',
+  '┃ Server: TESLA CLOUD 🟢',
+  '┃ Engine: ACTIVE ⚡',
+  '┃ Security: ENABLED 🔐',
+  '┃ Speed: TURBO 🚀',
+  '╰━━━━━━━━━━━━━━━━━━━━╯',
+  '',
+  '⏳ Processing your video...',
+  '',
+  '⚡ POWERED BY TESLA MD',
+].join('\n');
+
 const BOT_ID_PREFIXES = (process.env.ANTIBOT_PREFIXES || 'BAE5')
   .split(',').map((prefix) => prefix.trim().toUpperCase()).filter(Boolean);
 
@@ -415,6 +437,9 @@ if (antilinkall === 'on' && body.includes('https://') && !Owner && isBotAdmin &&
       return;
     }
     if (cmd) {
+      if (command === 'video' && text.trim() && handler.getPlugin(command)) {
+        await reply(VIDEO_DOWNLOAD_STATUS);
+      }
       const handled = await handler.dispatch(command, client, m, {
           DevDreaded, Heroku, NotOwner, Owner, MainOwner, isSudo, admin, appname,
           args, author, botAdmin, botNumber, botname, budy,
