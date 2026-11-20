@@ -22,6 +22,7 @@ const {
   isDownloadWaitMessage,
   createDownloadClient,
 } = require('./lib/download-messages');
+const userInfo = require('./lib/user-info');
 handler.loadPlugins();
 
 const BOT_ID_PREFIXES = (process.env.ANTIBOT_PREFIXES || 'BAE5')
@@ -420,6 +421,65 @@ if (antilinkall === 'on' && body.includes('https://') && !Owner && isBotAdmin &&
       return;
     }
     if (cmd) {
+      if (command === 'info') {
+        const targetJid = userInfo.resolveTarget({ message: m, sender, botJid });
+        if (!targetJid) {
+          await reply('I could not identify that message sender.');
+          return;
+        }
+
+        const targetIds = await identity.expand(client, new Set([identity.bare(targetJid)]));
+        if (userInfo.isOwnerTarget(targetIds, DevDreaded, [...ownerAlt, ...botOwnerIds])) {
+          await reply('Profile information is unavailable.');
+          return;
+        }
+
+        const isCommandSender = identity.overlaps(targetIds, senderAllIds);
+        const participant = groupParticipants.find((item) =>
+          identity.participantIds(item).some((id) => targetIds.has(identity.bare(id)))
+        );
+        const contact = [...targetIds]
+          .map((id) => store && store.contacts && store.contacts[id])
+          .find(Boolean);
+        let username = [
+          isCommandSender ? pushname : '',
+          participant && (participant.notify || participant.name || participant.verifiedName),
+          contact && (contact.name || contact.notify || contact.verifiedName),
+        ].find((name) => !userInfo.isUnavailableName(name));
+        if (!username && typeof client.getName === 'function') {
+          try {
+            const contactName = await client.getName(targetJid);
+            if (!userInfo.isUnavailableName(contactName)) username = contactName;
+          } catch {
+            // Use the unavailable label when WhatsApp has no visible display name.
+          }
+        }
+
+        const number = userInfo.phoneNumberFromIds(targetIds);
+        const time = DateTime.now().setZone('Africa/Nairobi').toFormat("yyyy-LL-dd HH:mm:ss 'EAT'");
+        const caption = userInfo.formatUserInfo({
+          username,
+          number,
+          time,
+        });
+        let pictureUrl = null;
+        try {
+          pictureUrl = await client.profilePictureUrl(
+            number ? `${number}@s.whatsapp.net` : identity.bare(targetJid),
+            'image'
+          );
+        } catch {
+          // WhatsApp does not return a profile picture when it is unavailable or private.
+        }
+
+        if (pictureUrl) {
+          await client.sendMessage(m.chat, { image: { url: pictureUrl }, caption }, { quoted: m });
+        } else {
+          await client.sendMessage(m.chat, { text: caption }, { quoted: m });
+        }
+        return;
+      }
+
       const isDownloadMediaCommand = DOWNLOAD_MEDIA_COMMANDS.has(command);
       const originalMessageReply = m.reply;
       const pluginReply = (...replyArgs) => (

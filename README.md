@@ -8,4 +8,6 @@
 
 <img src="assets/tesla-md-showroom.png" alt="TESLA-MD showroom" width="240">
 
+<img src="assets/tesla-night-showroom.jpg" alt="White Tesla outside a showroom at night" width="320">
+
 </div>
