@@ -8,21 +8,13 @@ const chalk = require("chalk");
 const speed = require("performance-now");
 const { DateTime } = require('luxon');
 const fetchSettings = require('./database/fetchSettings');
-const { updateSetting } = require('./database/config');
 const groupCache = require('./lib/Groupcache');
 const identity = require('./lib/Identity');
-const groupJoin = require('./lib/group-join');
 const sudoLib = require('./lib/sudo');
 const antideleteLib = require('./lib/antidelete');
 const { fetchJson } = require('./lib/dreadfunc');
 const { execFile } = require("child_process");
 const handler = require('./lib/handler');
-const {
-  DOWNLOAD_MEDIA_COMMANDS,
-  isDownloadWaitMessage,
-  createDownloadClient,
-} = require('./lib/download-messages');
-const userInfo = require('./lib/user-info');
 handler.loadPlugins();
 
 const BOT_ID_PREFIXES = (process.env.ANTIBOT_PREFIXES || 'BAE5')
@@ -176,7 +168,7 @@ if (wapresence === 'recording' && !m.isGroup) {
              client.sendPresenceUpdate('available', m.chat);
     }
     
-if (cmd && mode === 'private' && !['owner', 'join'].includes(command) && !itsMe && !Owner && m.sender !== dev) {
+if (cmd && mode === 'private' && !itsMe && !Owner && m.sender !== dev) {
 return;
 }
 
@@ -187,35 +179,6 @@ return;
       if (itsMe && mek.key.id.startsWith("BAE5") && mek.key.id.length === 16 && !m.isGroup) return;
 
 antideleteLib.handle(client, m, mek, antidelete);
-
-if (cmd && command === 'owner') {
-  const contact = groupJoin.getOwnerContact();
-  await reply(`Bot owner: +${contact}\nhttps://wa.me/${contact}`);
-  return;
-}
-
-if (cmd && command === 'join') {
-  if (m.isGroup) {
-    await reply('Please message me privately with .join if you want to join the group.');
-    return;
-  }
-
-  try {
-    const senderIds = identity.senderIds(m, mek, []);
-    const result = await groupJoin.addOptedInUser(client, senderIds);
-    if (result.status === 'already_member') {
-      await reply('You are already a member of the group.');
-    } else if (result.status === 'added') {
-      await reply('You have been added to the group.');
-    } else {
-      await reply(`WhatsApp requires you to join using the group invite link:\n${groupJoin.getInviteLink()}`);
-    }
-  } catch (error) {
-    console.error('Group join request failed:', error.message || error);
-    await reply(`I could not add you automatically: ${error.message || error}\nYou can join using this invite link:\n${groupJoin.getInviteLink()}`);
-  }
-  return;
-}
 
 const msgId = (mek && mek.key && mek.key.id) || m.id || '';
 if (antibot === 'on' && m.isGroup && isBotAdmin && !isAdmin && !Owner && !itsMe && isBotMessageId(msgId)) {
@@ -229,7 +192,7 @@ if (antibot === 'on' && m.isGroup && isBotAdmin && !isAdmin && !Owner && !itsMe 
   return;
 }
 if (budy.startsWith('>')) { 
-   if (!MainOwner) return;
+   if (!Owner) return;
    try { 
  let evaled = await eval(budy.slice(2)); 
  if (typeof evaled !== 'string') evaled = require('util').inspect(evaled); 
@@ -366,150 +329,16 @@ if (antilinkall === 'on' && body.includes('https://') && !Owner && isBotAdmin &&
     }
 
     if (cmd && process.env.DEBUG_IDS === 'true') console.log('IDS', JSON.stringify({ fromMe: m.fromMe, sender: m.sender, key: mek.key, me: [...myIds], senderIds: [...senderAllIds], owner: Owner, itsMe, isAdmin }));
-    if (cmd && command === 'antidelete') {
-      if (!MainOwner) {
-        await reply('Only the bot owner can change anti-delete settings.');
-        return;
-      }
-
-      const requestedMode = String(args[0] || '').toLowerCase();
-      const currentMode = antideleteLib.normalizeMode(antidelete);
-      if (!requestedMode || ['status', 'help'].includes(requestedMode)) {
-        await reply([
-          '╭━━━〔 🛡️ 𝗔𝗡𝗧𝗜-𝗗𝗘𝗟𝗘𝗧𝗘 〕━━━╮',
-          `┃ Current mode: ${currentMode.toUpperCase()}`,
-          '┣━━━━━━━━━━━━━━━━━━━━━━━━━━',
-          '┃ DM     — send reports to owner DM',
-          '┃ CHAT   — private chats, report there',
-          '┃ GROUP  — groups, report in group',
-          '┃ BOTH   — source chat and owner DM',
-          '┃ OFF    — do not save messages',
-          '┣━━━━━━━━━━━━━━━━━━━━━━━━━━',
-          '┃ Saved copies are kept locally for',
-          `┃ up to ${Number(process.env.ANTIDELETE_KEEP_HOURS) || 48} hours.`,
-          '╰━━━━━━━━━━━━━━━━━━━━━━━━━━╯',
-          `Use ${prefix}antidelete dm|chat|group|both|off`,
-        ].join('\n'));
-        return;
-      }
-
-      if (!['off', 'dm', 'group', 'chat', 'both'].includes(requestedMode)) {
-        await reply(`Choose a mode: ${prefix}antidelete dm, chat, group, both, or off.`);
-        return;
-      }
-
-      const saved = await updateSetting('antidelete', requestedMode);
-      if (!saved) {
-        await reply('Anti-delete settings could not be saved. Please try again.');
-        return;
-      }
-      const modeDescriptions = {
-        off: 'New messages will not be archived.',
-        dm: 'Reports from DMs and groups go to the bot owner’s DM.',
-        chat: 'Private messages only; reports return to that chat.',
-        group: 'Group messages only; reports return to that group.',
-        both: 'Reports go to the source chat and bot owner’s DM.',
-      };
-      await reply([
-        '╭━━━〔 🛡️ 𝗔𝗡𝗧𝗜-𝗗𝗘𝗟𝗘𝗧𝗘 〕━━━╮',
-        `┃ Mode updated: ${requestedMode.toUpperCase()}`,
-        `┃ ${modeDescriptions[requestedMode]}`,
-        requestedMode === 'off'
-          ? '╰━━━━━━━━━━━━━━━━━━━━━━━━━━╯'
-          : `┃ Copies are kept locally for up to ${Number(process.env.ANTIDELETE_KEEP_HOURS) || 48} hours.\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━╯`,
-      ].join('\n'));
-      return;
-    }
     if (cmd) {
-      if (command === 'info') {
-        const targetJid = userInfo.resolveTarget({ message: m, sender, botJid });
-        if (!targetJid) {
-          await reply('I could not identify that message sender.');
-          return;
-        }
-
-        const targetIds = await identity.expand(client, new Set([identity.bare(targetJid)]));
-        if (userInfo.isOwnerTarget(targetIds, DevDreaded, [...ownerAlt, ...botOwnerIds])) {
-          await reply('Profile information is unavailable.');
-          return;
-        }
-
-        const commandSenderIds = await identity.expand(client, new Set([identity.bare(sender)]));
-        const isCommandSender = userInfo.isCommandSender(targetIds, commandSenderIds);
-        const participant = groupParticipants.find((item) =>
-          identity.participantIds(item).some((id) => targetIds.has(identity.bare(id)))
-        );
-        const contact = [...targetIds]
-          .map((id) => store && store.contacts && store.contacts[id])
-          .find(Boolean);
-        let username = [
-          isCommandSender ? pushname : '',
-          participant && (participant.notify || participant.name || participant.verifiedName),
-          contact && (contact.name || contact.notify || contact.verifiedName),
-        ].find((name) => !userInfo.isUnavailableName(name));
-        if (!username && typeof client.getName === 'function') {
-          try {
-            const contactName = await client.getName(targetJid);
-            if (!userInfo.isUnavailableName(contactName)) username = contactName;
-          } catch {
-            // Use the unavailable label when WhatsApp has no visible display name.
-          }
-        }
-
-        const number = userInfo.phoneNumberFromIds(targetIds);
-        const time = DateTime.now().setZone('Africa/Nairobi').toFormat("yyyy-LL-dd HH:mm:ss 'EAT'");
-        const caption = userInfo.formatUserInfo({
-          username,
-          number,
-          time,
+      const handled = await handler.dispatch(command, client, m, {
+          DevDreaded, Heroku, NotOwner, Owner, MainOwner: Owner, isSudo, admin, appname,
+          args, author, botAdmin, botNumber, botname, budy,
+          chatUpdate, command, dreadedspeed, from, getGreeting, group,
+          groupMetadata, herokuapi, isAdmin, isBotAdmin, loading, mek,
+          menu, menutype: menu, mime, mp3d, msgDreaded, mycode, packname,
+          participants, prefix, pushname, qmsg, quoted, reply,
+          runtime, sender, store, text, q: text,
         });
-        let pictureUrl = null;
-        try {
-          pictureUrl = await client.profilePictureUrl(
-            number ? `${number}@s.whatsapp.net` : identity.bare(targetJid),
-            'image'
-          );
-        } catch {
-          // WhatsApp does not return a profile picture when it is unavailable or private.
-        }
-
-        if (pictureUrl) {
-          await client.sendMessage(m.chat, { image: { url: pictureUrl }, caption }, { quoted: m });
-        } else {
-          await client.sendMessage(m.chat, { text: caption }, { quoted: m });
-        }
-        return;
-      }
-
-      const isDownloadMediaCommand = DOWNLOAD_MEDIA_COMMANDS.has(command);
-      const originalMessageReply = m.reply;
-      const pluginReply = (...replyArgs) => (
-        isDownloadMediaCommand && isDownloadWaitMessage(replyArgs[0])
-          ? Promise.resolve()
-          : originalMessageReply(...replyArgs)
-      );
-      if (isDownloadMediaCommand) m.reply = pluginReply;
-
-      let handled;
-      try {
-        handled = await handler.dispatch(
-          command,
-          isDownloadMediaCommand ? createDownloadClient(client, command) : client,
-          m,
-          {
-            DevDreaded, Heroku, NotOwner, Owner, MainOwner, isSudo, admin, appname,
-            args, author, botAdmin, botNumber, botname, budy,
-            chatUpdate, command, dreadedspeed, from, getGreeting, group,
-            groupMetadata, herokuapi, isAdmin, isBotAdmin, loading, mek,
-            menu, menutype: menu, mime, mp3d, msgDreaded, mycode, packname,
-            participants, prefix, pushname, qmsg, quoted,
-            reply: isDownloadMediaCommand ? pluginReply : reply,
-            runtime, sender, store, text, q: text,
-          }
-        );
-      } finally {
-        if (isDownloadMediaCommand) m.reply = originalMessageReply;
-      }
         if (!handled) {
         {
           if (cmd && budy.toLowerCase() != undefined) {
