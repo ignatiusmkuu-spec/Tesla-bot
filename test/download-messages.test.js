@@ -3,7 +3,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  DOWNLOAD_MEDIA_CAPTION,
+  SONG_DOWNLOAD_CAPTION,
+  VIDEO_DOWNLOAD_CAPTION,
   isDownloadWaitMessage,
   createDownloadClient,
 } = require('../lib/download-messages');
@@ -38,8 +39,9 @@ test('sends song audio as one captioned downloadable file', async () => {
     document: audio,
     mimetype: 'audio/mpeg',
     fileName: 'song.mp3',
-    caption: DOWNLOAD_MEDIA_CAPTION,
+    caption: SONG_DOWNLOAD_CAPTION,
   }, options]);
+  assert.ok(SONG_DOWNLOAD_CAPTION.length <= 1024);
 });
 
 test('keeps play audio and non-media messages unchanged', async () => {
@@ -60,4 +62,48 @@ test('keeps play audio and non-media messages unchanged', async () => {
     ['chat-id', audioMessage, undefined],
     ['chat-id', textMessage, undefined],
   ]);
+});
+
+test('combines the full video status with the downloaded media caption', async () => {
+  const calls = [];
+  const client = {
+    sendMessage(...args) {
+      calls.push(args);
+      return Promise.resolve('sent');
+    },
+  };
+  const videoMessage = {
+    video: { url: 'https://example.com/video.mp4' },
+    mimetype: 'video/mp4',
+    caption: 'DOWNLOADED BY TESLA-MD',
+  };
+
+  await createDownloadClient(client, 'video').sendMessage('chat-id', videoMessage);
+
+  assert.equal(calls.length, 1);
+  assert.equal(
+    calls[0][1].caption,
+    `${VIDEO_DOWNLOAD_CAPTION}\n\nDOWNLOADED BY TESLA-MD`
+  );
+  assert.ok(calls[0][1].caption.length <= 1024);
+});
+
+test('combines video status with downloaded document media too', async () => {
+  const calls = [];
+  const client = {
+    sendMessage(...args) {
+      calls.push(args);
+      return Promise.resolve('sent');
+    },
+  };
+  const documentMessage = {
+    document: { url: 'https://example.com/video.mp4' },
+    mimetype: 'video/mpeg',
+    fileName: 'video.mp4',
+  };
+
+  await createDownloadClient(client, 'video').sendMessage('chat-id', documentMessage);
+
+  assert.equal(calls[0][1].caption, VIDEO_DOWNLOAD_CAPTION);
+  assert.ok(VIDEO_DOWNLOAD_CAPTION.length <= 1024);
 });
