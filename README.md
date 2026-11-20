@@ -2,7 +2,7 @@
 
 # 𝗧𝗘𝗦𝗟𝗔-𝗠𝗗
 
-<img src="https://files.catbox.moe/t7qghl.jpg" alt="TESLA-MD" width="300">
+<img src="assets/tesla-md-showroom.png" alt="TESLA-MD showroom photo" width="300">
 
 <br><br>
 
