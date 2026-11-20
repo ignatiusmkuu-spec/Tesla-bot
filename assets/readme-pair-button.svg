@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="60" viewBox="0 0 220 60" role="img" aria-labelledby="title desc">
+  <title id="title">Pair WhatsApp</title>
+  <desc id="desc">Open the TESLA-MD WhatsApp pairing page.</desc>
+  <defs>
+    <linearGradient id="edge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#31e6b0"/>
+      <stop offset="1" stop-color="#087f68"/>
+    </linearGradient>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#123d35"/>
+      <stop offset="1" stop-color="#102621"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#12201f"/>
+      <stop offset="1" stop-color="#101619"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="218" height="58" rx="17" fill="url(#shine)" stroke="url(#edge)" stroke-width="1.5"/>
+  <rect x="11" y="10" width="40" height="40" rx="13" fill="url(#tile)"/>
+  <path d="M24 25.5a7 7 0 0 1 10-1.2l2.2 1.8m-1.2 8.4-2.2 1.8a7 7 0 0 1-10-1.2 7 7 0 0 1 1.2-9.8m12 1.2 2.2-1.8a7 7 0 0 1 8.8 10.8 7 7 0 0 1-8.8 1.2l-2.2-1.8m-5.2-5h9" fill="none" stroke="#4ce0b5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="62" y="25" fill="#8ba7a0" font-family="Arial, sans-serif" font-size="8" font-weight="700" letter-spacing="1.35">CONNECT WHATSAPP</text>
+  <text x="62" y="43" fill="#f2fffb" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing=".35">PAIR YOUR BOT</text>
+  <path d="m198 26 5 4-5 4m4-4h-9" fill="none" stroke="#4ce0b5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
