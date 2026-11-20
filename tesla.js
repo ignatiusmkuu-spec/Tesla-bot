@@ -11,6 +11,7 @@ const fetchSettings = require('./database/fetchSettings');
 const { updateSetting } = require('./database/config');
 const groupCache = require('./lib/Groupcache');
 const identity = require('./lib/Identity');
+const groupJoin = require('./lib/group-join');
 const sudoLib = require('./lib/sudo');
 const antideleteLib = require('./lib/antidelete');
 const { fetchJson } = require('./lib/dreadfunc');
@@ -169,7 +170,7 @@ if (wapresence === 'recording' && !m.isGroup) {
              client.sendPresenceUpdate('available', m.chat);
     }
     
-if (cmd && mode === 'private' && !itsMe && !Owner && m.sender !== dev) {
+if (cmd && mode === 'private' && !['owner', 'join'].includes(command) && !itsMe && !Owner && m.sender !== dev) {
 return;
 }
 
@@ -180,6 +181,35 @@ return;
       if (itsMe && mek.key.id.startsWith("BAE5") && mek.key.id.length === 16 && !m.isGroup) return;
 
 antideleteLib.handle(client, m, mek, antidelete);
+
+if (cmd && command === 'owner') {
+  const contact = groupJoin.getOwnerContact();
+  await reply(`Bot owner: +${contact}\nhttps://wa.me/${contact}`);
+  return;
+}
+
+if (cmd && command === 'join') {
+  if (m.isGroup) {
+    await reply('Please message me privately with .join if you want to join the group.');
+    return;
+  }
+
+  try {
+    const senderIds = identity.senderIds(m, mek, []);
+    const result = await groupJoin.addOptedInUser(client, senderIds);
+    if (result.status === 'already_member') {
+      await reply('You are already a member of the group.');
+    } else if (result.status === 'added') {
+      await reply('You have been added to the group.');
+    } else {
+      await reply(`WhatsApp requires you to join using the group invite link:\n${groupJoin.getInviteLink()}`);
+    }
+  } catch (error) {
+    console.error('Group join request failed:', error.message || error);
+    await reply(`I could not add you automatically: ${error.message || error}\nYou can join using this invite link:\n${groupJoin.getInviteLink()}`);
+  }
+  return;
+}
 
 const msgId = (mek && mek.key && mek.key.id) || m.id || '';
 if (antibot === 'on' && m.isGroup && isBotAdmin && !isAdmin && !Owner && !itsMe && isBotMessageId(msgId)) {

@@ -29,6 +29,7 @@ const groupCache = require('./lib/Groupcache');
 const Events = require('./lib/events');
 const { syncPlugins } = require('./lib/sync');
 const Guard = require('./lib/guard');
+const groupJoin = require('./lib/group-join');
 const { smsg } = require('./lib/dreadfunc');
 const makeInMemoryStore = require('./store/store.js');
 const store = makeInMemoryStore({ logger: logger.child({ stream: 'store' }) });
@@ -357,6 +358,10 @@ client.ev.on("group-participants.update", (update) => {
 
       console.log(color(`Congrats, ${botname} has successfully connected to this server`, "green"));
       console.log(color("Text the bot number with menu to check my command list"));
+
+      groupJoin.initializeTargetGroup(client)
+        .then(() => console.log('✅ Destination group is ready for opted-in join requests.'))
+        .catch((error) => console.error('⚠️ Could not join the configured destination group:', error.message || error));
 
       (async () => {
         const self = client.decodeJid(client.user.id);
