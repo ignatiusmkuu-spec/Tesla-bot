@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="280" viewBox="0 0 1200 280" fill="none">
+  <defs>
+    <linearGradient id="rainbow" x1="60" y1="0" x2="1140" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ff3b7a"/>
+      <stop offset=".2" stop-color="#ff9c3b"/>
+      <stop offset=".4" stop-color="#ffe65c"/>
+      <stop offset=".6" stop-color="#48f0b5"/>
+      <stop offset=".8" stop-color="#42baff"/>
+      <stop offset="1" stop-color="#bd69ff"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-100%" width="140%" height="300%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <radialGradient id="backdrop">
+      <stop stop-color="#1c2140"/>
+      <stop offset="1" stop-color="#090b16"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="280" rx="24" fill="url(#backdrop)"/>
+  <g stroke="url(#rainbow)" stroke-linecap="round" filter="url(#glow)" opacity=".9">
+    <path d="M-30 32C180 6 300 62 500 34s340-19 730-2" stroke-width="2"/>
+    <path d="M-20 52c230-26 370 21 570-1s370-27 690 0" stroke-width="1.5" opacity=".65"/>
+    <path d="M-20 80c230-25 370 17 570 0s370-23 690 2" stroke-width="1" opacity=".5"/>
+    <path d="M-20 226c230 25 370-17 570 0s370 23 690-2" stroke-width="1" opacity=".5"/>
+    <path d="M-20 248c230 26 370-21 570 1s370 27 690 0" stroke-width="1.5" opacity=".65"/>
+    <path d="M-30 268c210 26 330-30 530-2s340 19 730 2" stroke-width="2"/>
+  </g>
+  <g fill="#fff" opacity=".9">
+    <circle cx="145" cy="111" r="2"/><circle cx="1044" cy="91" r="2"/>
+    <circle cx="1005" cy="181" r="1.5"/><circle cx="195" cy="193" r="1.5"/>
+  </g>
+  <text x="600" y="143" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="62" font-weight="700" letter-spacing="7" text-anchor="middle">TESLA-MD</text>
+  <text x="600" y="181" fill="#b8c4e8" font-family="Arial,Helvetica,sans-serif" font-size="18" letter-spacing="3" text-anchor="middle">WHATSAPP MULTI-DEVICE BOT</text>
+</svg>
