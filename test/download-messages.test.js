@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
   SONG_DOWNLOAD_CAPTION,
+  PLAY_DOWNLOAD_CAPTION,
   VIDEO_DOWNLOAD_CAPTION,
   isDownloadWaitMessage,
   createDownloadClient,
@@ -44,7 +45,7 @@ test('sends song audio as one captioned downloadable file', async () => {
   assert.ok(SONG_DOWNLOAD_CAPTION.length <= 1024);
 });
 
-test('keeps play audio and non-media messages unchanged', async () => {
+test('combines the play caption and audio media into one downloadable message', async () => {
   const calls = [];
   const client = {
     sendMessage(...args) {
@@ -52,16 +53,25 @@ test('keeps play audio and non-media messages unchanged', async () => {
       return Promise.resolve('sent');
     },
   };
-  const audioMessage = { audio: { url: 'https://example.com/song.mp3' }, mimetype: 'audio/mpeg' };
+  const audioMessage = {
+    audio: { url: 'https://example.com/song.mp3' },
+    mimetype: 'audio/mpeg',
+    fileName: 'track.mp3',
+  };
   const textMessage = { text: 'No results found.' };
 
   await createDownloadClient(client, 'play').sendMessage('chat-id', audioMessage);
   await createDownloadClient(client, 'song').sendMessage('chat-id', textMessage);
 
-  assert.deepEqual(calls, [
-    ['chat-id', audioMessage, undefined],
-    ['chat-id', textMessage, undefined],
-  ]);
+  assert.equal(calls.length, 2);
+  assert.deepEqual(calls[0], ['chat-id', {
+    document: audioMessage.audio,
+    mimetype: 'audio/mpeg',
+    fileName: 'track.mp3',
+    caption: PLAY_DOWNLOAD_CAPTION,
+  }, undefined]);
+  assert.deepEqual(calls[1], ['chat-id', textMessage, undefined]);
+  assert.ok(PLAY_DOWNLOAD_CAPTION.length <= 1024);
 });
 
 test('combines the video status and downloaded media caption in one message', async () => {
