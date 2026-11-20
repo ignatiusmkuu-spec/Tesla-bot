@@ -17,69 +17,12 @@ const antideleteLib = require('./lib/antidelete');
 const { fetchJson } = require('./lib/dreadfunc');
 const { execFile } = require("child_process");
 const handler = require('./lib/handler');
+const {
+  DOWNLOAD_MEDIA_COMMANDS,
+  isDownloadWaitMessage,
+  createDownloadClient,
+} = require('./lib/download-messages');
 handler.loadPlugins();
-
-const VIDEO_DOWNLOAD_STATUS = [
-  '╭━━━〔 ⚡ TESLA MD 〕━━━╮',
-  '',
-  '⏳ Initializing video downloader...',
-  '🔌 Connecting to Tesla servers...',
-  '📡 Establishing secure connection...',
-  '🔍 Analyzing video source...',
-  '⚙️ Activating download engine...',
-  '📥 Preparing high-speed download...',
-  '',
-  '╭━━〔 SYSTEM STATUS 〕━━╮',
-  '┃ Server: TESLA CLOUD 🟢',
-  '┃ Engine: ACTIVE ⚡',
-  '┃ Security: ENABLED 🔐',
-  '┃ Speed: TURBO 🚀',
-  '╰━━━━━━━━━━━━━━━━━━━━╯',
-  '',
-  '⏳ Processing your video...',
-  '',
-  '⚡ POWERED BY TESLA MD',
-].join('\n');
-
-const SONG_DOWNLOAD_STATUS = [
-  '╭━━━〔 🎧 𝑻𝑬𝑺𝑳𝑨 𝑴𝑫 〕━━━╮',
-  '',
-  '⏳ 𝑰𝒏𝒊𝒕𝒊𝒂𝒍𝒊𝒛𝒊𝒏𝒈 𝒔𝒐𝒏𝒈 𝒆𝒏𝒈𝒊𝒏𝒆...',
-  '🔌 𝑪𝒐𝒏𝒏𝒆𝒄𝒕𝒊𝒏𝒈 𝒕𝒐 𝑻𝒆𝒔𝒍𝒂 𝒔𝒆𝒓𝒗𝒆𝒓𝒔...',
-  '🔍 𝑺𝒆𝒂𝒓𝒄𝒉𝒊𝒏𝒈 𝒂𝒖𝒅𝒊𝒐 𝒍𝒊𝒃𝒓𝒂𝒓𝒚...',
-  '🎵 𝑴𝒂𝒕𝒄𝒉𝒊𝒏𝒈 𝒔𝒐𝒏𝒈 𝒅𝒆𝒕𝒂𝒊𝒍𝒔...',
-  '📥 𝑷𝒓𝒆𝒑𝒂𝒓𝒊𝒏𝒈 𝒂𝒖𝒅𝒊𝒐 𝒅𝒐𝒘𝒏𝒍𝒐𝒂𝒅...',
-  '',
-  '╭━━〔 ⚡ 𝑺𝒀𝑺𝑻𝑬𝑴 〕━━╮',
-  '┃ ◈ 𝑺𝒆𝒓𝒗𝒆𝒓: 𝑻𝑬𝑺𝑳𝑨 🟢',
-  '┃ ◈ 𝑨𝒖𝒅𝒊𝒐: 𝑯𝑫',
-  '┃ ◈ 𝑬𝒏𝒈𝒊𝒏𝒆: 𝑨𝑪𝑻𝑰𝑽𝑬 ⚡',
-  '╰━━━━━━━━━━━━━━━━━━╯',
-  '',
-  '🎶 𝑷𝒓𝒐𝒄𝒆𝒔𝒔𝒊𝒏𝒈 𝒚𝒐𝒖𝒓 𝒔𝒐𝒏𝒈...',
-  '',
-  '⚡ 𝑷𝑶𝑾𝑬𝑹𝑬𝑫 𝑩𝒀 𝑻𝑬𝑺𝑳𝑨 𝑴𝑫',
-].join('\n');
-
-const PLAY_MUSIC_STATUS = [
-  '╭━━━〔 ⚡ 𝑻𝑬𝑺𝑳𝑨 𝑴𝑫 〕━━━╮',
-  '',
-  '🎧 𝑰𝒏𝒊𝒕𝒊𝒂𝒍𝒊𝒛𝒊𝒏𝒈 𝒎𝒖𝒔𝒊𝒄 𝒑𝒍𝒂𝒚𝒆𝒓...',
-  '🔌 𝑪𝒐𝒏𝒏𝒆𝒄𝒕𝒊𝒏𝒈 𝒕𝒐 𝑻𝒆𝒔𝒍𝒂 𝒂𝒖𝒅𝒊𝒐 𝒏𝒐𝒅𝒆𝒔...',
-  '🔍 𝑳𝒐𝒄𝒂𝒕𝒊𝒏𝒈 𝒓𝒆𝒒𝒖𝒆𝒔𝒕𝒆𝒅 𝒕𝒓𝒂𝒄𝒌...',
-  '⚙️ 𝑺𝒚𝒏𝒄𝒉𝒓𝒐𝒏𝒊𝒛𝒊𝒏𝒈 𝒂𝒖𝒅𝒊𝒐 𝒔𝒕𝒓𝒆𝒂𝒎...',
-  '🚀 𝑳𝒂𝒖𝒏𝒄𝒉𝒊𝒏𝒈 𝒑𝒍𝒂𝒚𝒃𝒂𝒄𝒌...',
-  '',
-  '╭━━〔 🎼 𝑷𝑳𝑨𝒀𝑬𝑹 〕━━╮',
-  '┃ ◈ 𝑺𝒕𝒂𝒕𝒖𝒔: 𝑹𝑬𝑨𝑫𝒀 🟢',
-  '┃ ◈ 𝑺𝒐𝒖𝒏𝒅: 𝑨𝑪𝑻𝑰𝑽𝑬 🔊',
-  '┃ ◈ 𝑵𝒆𝒕𝒘𝒐𝒓𝒌: 𝑻𝑬𝑺𝑳𝑨 ⚡',
-  '╰━━━━━━━━━━━━━━━━━━╯',
-  '',
-  '🎶 𝑳𝒐𝒂𝒅𝒊𝒏𝒈 𝒚𝒐𝒖𝒓 𝒎𝒖𝒔𝒊𝒄...',
-  '',
-  '⚡ 𝑻𝑬𝑺𝑳𝑨 𝑴𝑫 | 𝑵𝑬𝑿𝑻-𝑮𝑬𝑵 𝑨𝑼𝑫𝑰𝑶',
-].join('\n');
 
 const BOT_ID_PREFIXES = (process.env.ANTIBOT_PREFIXES || 'BAE5')
   .split(',').map((prefix) => prefix.trim().toUpperCase()).filter(Boolean);
@@ -477,24 +420,35 @@ if (antilinkall === 'on' && body.includes('https://') && !Owner && isBotAdmin &&
       return;
     }
     if (cmd) {
-      if (command === 'video' && text.trim() && handler.getPlugin(command)) {
-        await reply(VIDEO_DOWNLOAD_STATUS);
+      const isDownloadMediaCommand = DOWNLOAD_MEDIA_COMMANDS.has(command);
+      const originalMessageReply = m.reply;
+      const pluginReply = (...replyArgs) => (
+        isDownloadMediaCommand && isDownloadWaitMessage(replyArgs[0])
+          ? Promise.resolve()
+          : originalMessageReply(...replyArgs)
+      );
+      if (isDownloadMediaCommand) m.reply = pluginReply;
+
+      let handled;
+      try {
+        handled = await handler.dispatch(
+          command,
+          isDownloadMediaCommand ? createDownloadClient(client, command) : client,
+          m,
+          {
+            DevDreaded, Heroku, NotOwner, Owner, MainOwner, isSudo, admin, appname,
+            args, author, botAdmin, botNumber, botname, budy,
+            chatUpdate, command, dreadedspeed, from, getGreeting, group,
+            groupMetadata, herokuapi, isAdmin, isBotAdmin, loading, mek,
+            menu, menutype: menu, mime, mp3d, msgDreaded, mycode, packname,
+            participants, prefix, pushname, qmsg, quoted,
+            reply: isDownloadMediaCommand ? pluginReply : reply,
+            runtime, sender, store, text, q: text,
+          }
+        );
+      } finally {
+        if (isDownloadMediaCommand) m.reply = originalMessageReply;
       }
-      if (command === 'song' && text.trim() && handler.getPlugin(command)) {
-        await reply(SONG_DOWNLOAD_STATUS);
-      }
-      if (command === 'play' && text.trim() && handler.getPlugin(command)) {
-        await reply(PLAY_MUSIC_STATUS);
-      }
-      const handled = await handler.dispatch(command, client, m, {
-          DevDreaded, Heroku, NotOwner, Owner, MainOwner, isSudo, admin, appname,
-          args, author, botAdmin, botNumber, botname, budy,
-          chatUpdate, command, dreadedspeed, from, getGreeting, group,
-          groupMetadata, herokuapi, isAdmin, isBotAdmin, loading, mek,
-          menu, menutype: menu, mime, mp3d, msgDreaded, mycode, packname,
-          participants, prefix, pushname, qmsg, quoted, reply,
-          runtime, sender, store, text, q: text,
-        });
         if (!handled) {
         {
           if (cmd && budy.toLowerCase() != undefined) {
