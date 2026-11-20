@@ -198,7 +198,7 @@ async function run() {
     }
   }
 
-  console.log(`[CORE] ${core.size} core file(s) and ${plugins.size} plugin(s) checked from ${REPO}@${BRANCH}; ${updated.length} core and ${seeded.length} plugin file(s) updated.`);
+  console.log(`[CORE] ${core.size} core file(s) and ${plugins.size} plugin(s) Confirmed ${updated.length} core and ${seeded.length} plugin file(s) updated.`);
   return { updated, seeded };
 }
 
