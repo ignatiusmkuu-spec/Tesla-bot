@@ -1,6 +1,7 @@
 <div align="center">
-# TESLA-MD 
-  
+
+# **TESLA-MD**
+
 <img src="https://raw.githubusercontent.com/McrayNick/tesla-md-files/main/assets/tesla-md-showroom.png" alt="White Tesla outside a showroom at night" width="320">
 
 **A WhatsApp multi-device bot** · **Node.js 22+**
