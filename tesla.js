@@ -434,7 +434,8 @@ if (antilinkall === 'on' && body.includes('https://') && !Owner && isBotAdmin &&
           return;
         }
 
-        const isCommandSender = identity.overlaps(targetIds, senderAllIds);
+        const commandSenderIds = await identity.expand(client, new Set([identity.bare(sender)]));
+        const isCommandSender = userInfo.isCommandSender(targetIds, commandSenderIds);
         const participant = groupParticipants.find((item) =>
           identity.participantIds(item).some((id) => targetIds.has(identity.bare(id)))
         );

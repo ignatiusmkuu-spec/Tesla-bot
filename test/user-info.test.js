@@ -6,6 +6,7 @@ const {
   resolveTarget,
   phoneNumberFromIds,
   isOwnerTarget,
+  isCommandSender,
   isUnavailableName,
   formatUserInfo,
 } = require('../lib/user-info');
@@ -62,6 +63,13 @@ test('resolves visible phone numbers and excludes bot owners', () => {
   assert.equal(isOwnerTarget(targetIds, ['254700999888'], []), false);
   assert.equal(isOwnerTarget(new Set(['254700999888@s.whatsapp.net']), ['254700999888'], []), true);
   assert.equal(isOwnerTarget(new Set(['12345@lid']), [], ['12345@lid']), true);
+});
+
+test('does not mistake a direct-chat contact for the command sender', () => {
+  const contactIds = new Set(['254700111222@s.whatsapp.net']);
+  const ownerSenderIds = new Set(['254700999888@s.whatsapp.net']);
+  assert.equal(isCommandSender(contactIds, ownerSenderIds), false);
+  assert.equal(isCommandSender(ownerSenderIds, ownerSenderIds), true);
 });
 
 test('formats profile details and avoids treating a phone number as a username', () => {
