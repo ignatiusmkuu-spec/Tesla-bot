@@ -29,10 +29,7 @@ const groupCache = require('./lib/Groupcache');
 const Events = require('./lib/events');
 const { syncPlugins } = require('./lib/sync');
 const Guard = require('./lib/guard');
-const groupJoin = require('./lib/group-join');
 const { smsg } = require('./lib/dreadfunc');
-const makeInMemoryStore = require('./store/store.js');
-const store = makeInMemoryStore({ logger: logger.child({ stream: 'store' }) });
 
 const app = express();
 const color = (text, color) => {
@@ -170,15 +167,10 @@ async function startperez() {
       keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "silent" })),
     },
     cachedGroupMetadata: async (jid) => groupCache.get(jid),
-    getMessage: async (key) => {
-      const stored = store.loadMessage(key.remoteJid, key.id);
-      return stored && stored.message ? stored.message : undefined;
-    },
     syncFullHistory: false,
   });
 
 groupCache.bind(client);
-store.bind(client.ev);
 
   if (autobio === 'on') {
     setInterval(() => {
@@ -247,8 +239,8 @@ store.bind(client.ev);
 
         if (!client.public && !mek.key.fromMe && chatUpdate.type === "notify") continue;
 
-        const m = smsg(client, mek, store);
-        tesla(client, m, { ...chatUpdate, messages: [mek] }, store).catch((error) => console.log(error));
+        const m = smsg(client, mek);
+        tesla(client, m, { ...chatUpdate, messages: [mek] }).catch((error) => console.log(error));
       } catch (err) {
         console.log(err);
       }
@@ -294,38 +286,20 @@ client.ev.on('call', async (callData) => {
   }
 });
 
-  client.ev.on("contacts.update", (update) => {
-    for (let contact of update) {
-      let id = client.decodeJid(contact.id);
-      if (store && store.contacts) store.contacts[id] = { id, name: contact.notify };
-    }
-  });
 client.ev.on("group-participants.update", (update) => {
   Events(client, update);
   Guard(client, update);
 });
 
-  client.getName = (jid, withoutContact = false) => {
+  client.getName = async (jid, withoutContact = false) => {
     const id = client.decodeJid(jid);
-    withoutContact = client.withoutContact || withoutContact;
-    let v;
-    if (id.endsWith("@g.us"))
-      return new Promise(async (resolve) => {
-        v = store.contacts[id] || {};
-        if (!(v.name || v.subject)) v = client.groupMetadata(id) || {};
-        resolve(v.name || v.subject || PhoneNumber("+" + id.replace("@s.whatsapp.net", "")).getNumber("international"));
-      });
-    else
-      v =
-        id === "0@s.whatsapp.net"
-          ? {
-              id,
-              name: "WhatsApp",
-            }
-          : id === client.decodeJid(client.user.id)
-          ? client.user
-          : store.contacts[id] || {};
-    return (withoutContact ? "" : v.name) || v.subject || v.verifiedName || PhoneNumber("+" + jid.replace("@s.whatsapp.net", "")).getNumber("international");
+    if (id.endsWith("@g.us")) {
+      const metadata = await client.groupMetadata(id).catch(() => null);
+      return (metadata && metadata.subject) || id.split("@")[0];
+    }
+    if (id === "0@s.whatsapp.net") return "WhatsApp";
+    if (id === client.decodeJid(client.user.id) && !withoutContact) return client.user.name || id.split("@")[0];
+    return PhoneNumber("+" + id.split("@")[0].split(":")[0]).getNumber("international");
   };
 
   client.public = true;
@@ -358,10 +332,6 @@ client.ev.on("group-participants.update", (update) => {
 
       console.log(color(`Congrats, ${botname} has successfully connected to this server`, "green"));
       console.log(color("Text the bot number with menu to check my command list"));
-
-      groupJoin.initializeTargetGroup(client)
-        .then(() => console.log('✅ Destination group is ready for opted-in join requests.'))
-        .catch((error) => console.error('⚠️ Could not join the configured destination group:', error.message || error));
 
       (async () => {
         const self = client.decodeJid(client.user.id);
