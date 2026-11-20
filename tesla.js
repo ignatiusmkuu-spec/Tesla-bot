@@ -41,6 +41,26 @@ const VIDEO_DOWNLOAD_STATUS = [
   '⚡ POWERED BY TESLA MD',
 ].join('\n');
 
+const SONG_DOWNLOAD_STATUS = [
+  '╭━━━〔 🎧 𝑻𝑬𝑺𝑳𝑨 𝑴𝑫 〕━━━╮',
+  '',
+  '⏳ 𝑰𝒏𝒊𝒕𝒊𝒂𝒍𝒊𝒛𝒊𝒏𝒈 𝒔𝒐𝒏𝒈 𝒆𝒏𝒈𝒊𝒏𝒆...',
+  '🔌 𝑪𝒐𝒏𝒏𝒆𝒄𝒕𝒊𝒏𝒈 𝒕𝒐 𝑻𝒆𝒔𝒍𝒂 𝒔𝒆𝒓𝒗𝒆𝒓𝒔...',
+  '🔍 𝑺𝒆𝒂𝒓𝒄𝒉𝒊𝒏𝒈 𝒂𝒖𝒅𝒊𝒐 𝒍𝒊𝒃𝒓𝒂𝒓𝒚...',
+  '🎵 𝑴𝒂𝒕𝒄𝒉𝒊𝒏𝒈 𝒔𝒐𝒏𝒈 𝒅𝒆𝒕𝒂𝒊𝒍𝒔...',
+  '📥 𝑷𝒓𝒆𝒑𝒂𝒓𝒊𝒏𝒈 𝒂𝒖𝒅𝒊𝒐 𝒅𝒐𝒘𝒏𝒍𝒐𝒂𝒅...',
+  '',
+  '╭━━〔 ⚡ 𝑺𝒀𝑺𝑻𝑬𝑴 〕━━╮',
+  '┃ ◈ 𝑺𝒆𝒓𝒗𝒆𝒓: 𝑻𝑬𝑺𝑳𝑨 🟢',
+  '┃ ◈ 𝑨𝒖𝒅𝒊𝒐: 𝑯𝑫',
+  '┃ ◈ 𝑬𝒏𝒈𝒊𝒏𝒆: 𝑨𝑪𝑻𝑰𝑽𝑬 ⚡',
+  '╰━━━━━━━━━━━━━━━━━━╯',
+  '',
+  '🎶 𝑷𝒓𝒐𝒄𝒆𝒔𝒔𝒊𝒏𝒈 𝒚𝒐𝒖𝒓 𝒔𝒐𝒏𝒈...',
+  '',
+  '⚡ 𝑷𝑶𝑾𝑬𝑹𝑬𝑫 𝑩𝒀 𝑻𝑬𝑺𝑳𝑨 𝑴𝑫',
+].join('\n');
+
 const BOT_ID_PREFIXES = (process.env.ANTIBOT_PREFIXES || 'BAE5')
   .split(',').map((prefix) => prefix.trim().toUpperCase()).filter(Boolean);
 
@@ -439,6 +459,9 @@ if (antilinkall === 'on' && body.includes('https://') && !Owner && isBotAdmin &&
     if (cmd) {
       if (command === 'video' && text.trim() && handler.getPlugin(command)) {
         await reply(VIDEO_DOWNLOAD_STATUS);
+      }
+      if (command === 'song' && text.trim() && handler.getPlugin(command)) {
+        await reply(SONG_DOWNLOAD_STATUS);
       }
       const handled = await handler.dispatch(command, client, m, {
           DevDreaded, Heroku, NotOwner, Owner, MainOwner, isSudo, admin, appname,
