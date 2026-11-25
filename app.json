@@ -10,17 +10,12 @@
   ],
   "website": "https://github.com/Ignatiusperez/Perez#readme",
   "repository": "https://github.com/Ignatiusperez/Perez/",
-  "logo": "https://files.catbox.moe/0uzc42.jpg",
+  "logo": "https://u.pone.rs/cuaydlcx.jpg",
   "success_url": "/",
   "env": {
     "DEV": {
-      "description": "Put any phone numbers you want to be bot owner without + or spaces \",\" Ex: 254114520835,27748379216  ",
+      "description": "Put any phone numbers you want to be bot owner, starting with country code",
       "value": "254706535581",
-      "required": false
-    },
-    "BAD_WORD": {
-      "description": "List words separated witj commas that will be considered as bad and will trigger bot to kick. Example: fuck, pussy, hoe",
-      "value": "fuck,pussy,slut,bitch,cock,stupid",
       "required": false
     },
   "SESSION": {
