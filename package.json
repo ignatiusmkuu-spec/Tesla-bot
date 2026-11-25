@@ -32,18 +32,12 @@
     "express": "latest",
     "figlet": "^1.5.2",
     "file-type": "^16.5.3",
-    "fluent-ffmpeg": "^2.1.2",
     "form-data": "^4.0.0",
-    "genius-lyrics": "^4.4.3",
     "google-tts-api": "^2.0.2",
-    "heroku-client": "3.1.0",
-    "human-readable": "^0.2.1",
     "imgur": "2.3.0",
     "javascript-obfuscator": "^4.1.0",
     "jimp": "^1.6.1",
-    "lodash": "^4.17.21",
     "luxon": "^3.5.0",
-    "moment-timezone": "^0.5.34",
     "mumaker": "^2.0.0",
     "node-catbox": "3.2.0",
     "node-fetch": "^2.6.1",
@@ -52,7 +46,6 @@
     "pg": "^8.13.3",
     "pino": "^7.0.5",
     "tempmail.lol": "^4.1.0",
-    "yt-search": "^2.12.1",
-    "ytdl-core": "npm:@distube/ytdl-core"
+    "yt-search": "^2.12.1"
   }
 }
