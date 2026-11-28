@@ -19,7 +19,7 @@
       "required": false
     },
   "SESSION": {
-      "description": "Required base64-encoded WhatsApp credentials JSON. Keep it private.",
+      "description": "Paste the session you received after Linking below.",
       "required": true
     }
   },
